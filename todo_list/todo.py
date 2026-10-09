@@ -7,11 +7,13 @@
 # Invalid input is handled with messages and does not crash the program.
 
 import json
+from tkinter.messagebox import CANCEL
+
 
 #step 2
 def add_task(tasks, text):
     user_tasks = {"text": text,
-            "status": "pending"}
+        "status": "pending"}
     tasks.append(user_tasks)
 
 def show_tasks(tasks):
@@ -35,8 +37,31 @@ def load_task(file_path):
             tasks = json.load(file)
             return tasks
     except FileNotFoundError:
-        print("The file does not exist")
         return []
+
+def ask_task_number(tasks):
+    if not tasks:
+        print("No tasks exist yet")
+        return None
+    number = input("Enter the task number or c to cancel: ").strip()
+    if number.lower() == "c":
+        return "cancel"
+    try:
+        number = int(number)
+    except ValueError:
+        print("Invalid input. Please enter a valid whole number.")
+        return None
+
+    if number < 1 or number > len(tasks):
+        print("That number is not on the list")
+        return None
+    else:
+        return number - 1
+
+def set_status(tasks,index,new_status):
+    tasks[index]["status"] = new_status
+
+
 
 def main():
     tasks = load_task("tasks.json")
@@ -76,6 +101,49 @@ def main():
             add_task(tasks, task)
             save_task(tasks)
             print("Task added!")
+
+        elif user_input == "2":
+            if not tasks:
+                print("No tasks exist yet")
+                continue
+            while True:
+                print("***********ALL TASKS************")
+                show_tasks(tasks)
+                print("********************************")
+
+                index = ask_task_number(tasks)
+                if index is not None:
+                    break
+            if index == "cancel":
+                print("Cancelled")
+                continue
+            set_status(tasks,index,"completed")
+            save_task(tasks)
+            print("********************************")
+            print(f"Task {index + 1} completed")
+
+
+        elif user_input == "3":
+            if not tasks:
+                print("No tasks exist yet")
+                continue
+            while True:
+                print("***********ALL TASKS************")
+                show_tasks(tasks)
+                print("********************************")
+
+                index = ask_task_number(tasks)
+                if index is not None:
+                    break
+            if index == "cancel":
+                print("Cancelled")
+                continue
+            set_status(tasks,index,"cancelled")
+            save_task(tasks)
+            print("********************************")
+            print(f"Task {index + 1} cancelled")
+
+
 
         elif user_input == "6":
             print("***********ALL TASKS************")
