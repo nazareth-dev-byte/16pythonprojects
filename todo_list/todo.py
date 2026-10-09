@@ -7,7 +7,6 @@
 # Invalid input is handled with messages and does not crash the program.
 
 import json
-from tkinter.messagebox import CANCEL
 
 
 #step 2
@@ -60,8 +59,6 @@ def ask_task_number(tasks):
 
 def set_status(tasks,index,new_status):
     tasks[index]["status"] = new_status
-
-
 
 def main():
     tasks = load_task("tasks.json")
