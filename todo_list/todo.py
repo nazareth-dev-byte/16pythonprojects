@@ -1,6 +1,6 @@
 # To-Do List (CLI)
 # A command-line program for managing a list of tasks.
-# Each task is a dictionary holding its text and its status (pending, completed or canceled).
+# Each task is a dictionary holding its text and its status (pending, completed or cancelled).
 # All tasks live in one list, and the list is saved to tasks.json so it survives between runs.
 # A menu lets the user add, complete, cancel, delete, edit and view tasks, see a completion percentage and quit.
 # Task numbers shown to the user start at 1, while the list itself starts counting at 0.
@@ -59,6 +59,32 @@ def ask_task_number(tasks):
 
 def set_status(tasks,index,new_status):
     tasks[index]["status"] = new_status
+
+def delete_task(tasks, index):
+    tasks.pop(index)
+
+def edit_task(tasks, index, new_text):
+    tasks[index]["text"] = new_text
+
+def completion_percentage(tasks):
+    if not tasks:
+        print("No tasks exist yet")
+        return 0
+    total = 0
+    completed = 0
+
+    for task in tasks:
+        if task["status"]!= "cancelled":
+            total += 1
+        if task["status"] == "completed":
+            completed += 1
+
+    if total == 0:
+        return 0
+    else:
+        return completed / total * 100
+
+
 
 def main():
     tasks = load_task("tasks.json")
@@ -140,16 +166,74 @@ def main():
             print("********************************")
             print(f"Task {index + 1} cancelled")
 
+        elif user_input == "4":
+            if not tasks:
+                print("No tasks exist yet")
+                continue
+            while True:
+                print("***********ALL TASKS************")
+                show_tasks(tasks)
+                print("********************************")
+
+                index = ask_task_number(tasks)
+                if index is not None:
+                    break
+            if index == "cancel":
+                print("Cancelled")
+                continue
+
+            confirmation = input("Are you sure y/n?: ").strip()
+            if confirmation.lower() == "y":
+                delete_task(tasks, index)
+                save_task(tasks)
+                print("Task deleted")
+            else:
+                print("Task not deleted")
+            print("********************************")
+
+        elif user_input == "5":
+            if not tasks:
+                print("No tasks exist yet")
+                continue
+            while True:
+                print("***********ALL TASKS************")
+                show_tasks(tasks)
+                print("********************************")
+
+                index = ask_task_number(tasks)
+                if index is not None:
+                    break
+            if index == "cancel":
+                print("Cancelled")
+                continue
+            confirmation = input("Are you sure y/n?: ").strip()
+            if confirmation.lower() == "y":
+                print(f"Current task: {tasks[index]["text"]}")
+                new_text = input("Enter the new task: ").strip()
+                if not new_text:
+                    print("Text can't be empty")
+                    continue
+                edit_task(tasks, index, new_text)
+                save_task(tasks)
+                print(f"Task {index + 1} edited")
+            else:
+                print(f"Task {index + 1} not edited")
+            print("********************************")
 
 
         elif user_input == "6":
             print("***********ALL TASKS************")
             show_tasks(tasks)
             print("********************************")
+
+        elif user_input == "7":
+            percentage = round(completion_percentage(tasks))
+            print(f"You completed {percentage}% of your tasks.")
         elif user_input == "0":
             break
         else:
             print("Invalid Choice")
+
 
 if __name__ == "__main__":
     main()
