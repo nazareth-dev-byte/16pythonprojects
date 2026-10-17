@@ -8,8 +8,7 @@
 # How a question is stored (a dictionary with 3 keys):
 #   "question" - the question text
 #   "options"  - a dictionary of exactly 4 answer choices
-#   "answer"   - the letters (A-D) of the correct option, as the user sees it
-#   The options lists counts from 0, so answer 1 is options[0].
+#   "answer"   - the letter (A-D) of the correct option, as the user sees it
 #
 # Where questions come from:
 #   The LLM returns them as JSON, and each one is checked before use.
@@ -21,6 +20,7 @@
 #   then the correct answer.
 #   Score = number of correct answers. Percentage = score / total * 100.
 #   Result message: below 50% = low, 50% to 70% = average, above 70% = high.
+#The correct text is found with options[answer].
 
 
 
@@ -94,7 +94,7 @@ def is_valid_question(q):
     options = q["options"]
     if not isinstance(options, dict):
         return False
-    if list(options.keys()) != ["A","B","C","D"]:
+    if sorted(options.keys()) != ["A","B","C","D"]:
         return False
     for value in options.values():
         if not isinstance(value, str) or value.strip() == "":
@@ -108,6 +108,113 @@ def is_valid_question(q):
 
     return True
 
-for q in FALLBACK_QUESTIONS:
-    print(is_valid_question(q))
+#phase 3
+def ask_question(question, number):
+    print(f"{number}. {question["question"]}")
+    for key, value in question["options"].items():
+        print(f"{key}. {value}")
 
+    while True:
+        user_answer = input("What is your answer ?: ").strip().upper()
+        if user_answer not in question["options"].keys():
+            print(f"{user_answer} isn't an option")
+            continue
+
+        break
+
+    if user_answer == question["answer"]:
+        return True
+    else:
+        return False
+#phase 4
+WRONG_MESSAGES =["Not quite.",
+                 "Close, but no.",
+                 "That's not it. Keep going.",
+                 "Wrong this time. You'll get the next one.",
+                 "Missed that one."]
+def run_quiz(questions):
+    score = 0
+    last_message = None
+    shuffled = random.sample(questions, len(questions))
+    for number, question in enumerate(shuffled, start=1):
+        correct = ask_question(question, number)
+        letter = question["answer"]
+        text = question["options"][letter]
+        if correct:
+            score +=1
+            print(f"Correct! The answer is {letter}. {text}")
+        else:
+            message = random.choice(WRONG_MESSAGES)
+            while message == last_message:
+                message = random.choice(WRONG_MESSAGES)
+            last_message = message
+            print(message)
+            print(f"The correct answer was: {letter}. {text}")
+    return score
+
+
+#phase 5
+def show_result(score, total):
+    if total == 0:
+        percentage = 0
+    else:
+        percentage = round(score / total * 100)
+    print(f"You scored {score} out of {total} ({percentage}%)")
+
+    if percentage < 50:
+        print("Needs review—keep practicing and try again!")
+    elif percentage <= 70:
+        print("Good job! A little more practice and you'll master it.")
+    else:
+        print("Excellent work! You nailed this quiz.")
+#phase 6
+def ask_count():
+    while True:
+        try:
+            count = int(input("How many questions do you want to answer (1 - 10)?: "))
+        except ValueError:
+            print("Enter digits only")
+            continue
+        if count < 1 or count > 10:
+            print("You can only enter numbers between 1 and 10")
+        else:
+            return count
+#phase 7
+def get_questions(topic, count):
+    size = min(count, len(FALLBACK_QUESTIONS))
+    return random.sample(FALLBACK_QUESTIONS,size)
+def ask_topic():
+    topic = input("Enter a topic of your choice(Press enter for python basics):").strip()
+    if not topic:
+        return "Python basics"
+
+    return topic
+
+
+def main():
+    while True:
+        print("**********QUIZ APP**********")
+        print("Welcome! Test your knowledge on any topic.")
+        print("1. Start the quiz")
+        print("2. Quit")
+        print("****************************")
+        decision = input("Select one(1 or 2): ")
+        if decision == "1":
+            count = ask_count()
+            topic = ask_topic()
+            print("Generating questions...")
+            questions = get_questions(topic, count)
+            score = run_quiz(questions)
+            show_result(score, len(questions))
+            pa = input("Play again (y/n)?: ").strip().lower()
+            if pa != "y":
+                break
+        elif decision == "2":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice.")
+
+
+if __name__ == "__main__":
+    main()
