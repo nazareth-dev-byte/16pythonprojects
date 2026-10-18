@@ -25,6 +25,7 @@
 
 
 import random
+import llm_questions
 
 FALLBACK_QUESTIONS = [
     {
@@ -181,6 +182,16 @@ def ask_count():
             return count
 #phase 7
 def get_questions(topic, count):
+    generated = llm_questions.generate_questions(topic, count)
+    valid = []
+    for item in generated:
+        if is_valid_question(item):
+            valid.append(item)
+    valid = valid[:count]
+    if valid:
+        return valid
+    else:
+        print("Using built-in questions.")
     size = min(count, len(FALLBACK_QUESTIONS))
     return random.sample(FALLBACK_QUESTIONS,size)
 def ask_topic():
@@ -204,6 +215,7 @@ def main():
             topic = ask_topic()
             print("Generating questions...")
             questions = get_questions(topic, count)
+            print("AI generated questions might contain mistakes.")
             score = run_quiz(questions)
             show_result(score, len(questions))
             pa = input("Play again (y/n)?: ").strip().lower()
