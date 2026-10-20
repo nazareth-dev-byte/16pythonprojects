@@ -10,12 +10,6 @@ model = os.getenv("AZURE_MODEL")
 api_key = os.getenv("AZURE_API_KEY")
 
 
-client = OpenAI(
-    base_url=endpoint,
-    api_key=api_key
-)
-
-
 def generate_questions(topic, count):
     prompt = f"""Give me exactly {count} multiple-choice questions on {topic}.
     Reply with one JSON list only, with no extra text and no code fences. Each item in the list is one object with three keys.
@@ -25,6 +19,11 @@ def generate_questions(topic, count):
     Spread the correct answers across all four letters."""
 
     try:
+        client = OpenAI(
+            base_url=endpoint,
+            api_key=api_key
+            timeout = 30
+        )
         response = client.responses.create(
             model=model,
             input=prompt
